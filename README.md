@@ -17,6 +17,7 @@ El front puede vivir en GitHub Pages, pero la clave de la IA no puede estar en u
    - `CLASE_CODIGOS`: códigos de clase válidos separados por coma, por ejemplo `TUTELA2026`.
    - `ALLOWED_ORIGINS`: orígenes permitidos separados por coma. Por defecto `https://next-leap-s-a-s.github.io`.
    - `ANTHROPIC_MODEL` (opcional): por defecto `claude-sonnet-5-5`.
+Cada llamada a `/api/generar` tarda cerca de 40 segundos. `vercel.json` pide hasta 120 s por función; si el plan de Vercel no lo permite, las generaciones largas fallarán por tiempo.
 2. En `generador/config.js` poner `window.API_BASE = "https://<proyecto>.vercel.app";` si el front se sirve desde GitHub Pages. Si todo se sirve desde Vercel se deja vacío.
 
 ## Contrato de la API

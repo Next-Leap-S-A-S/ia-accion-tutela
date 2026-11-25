@@ -42,7 +42,6 @@ module.exports = async (req, res) => {
       max_tokens: 9000,
       system: METODO,
       tools: [HERRAMIENTA],
-      tool_choice: { type: "tool", name: "entregar_prompts" },
       messages: [{ role: "user", content: usuario }],
     });
     const j = await r.json();
