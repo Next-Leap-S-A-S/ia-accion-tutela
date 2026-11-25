@@ -5,20 +5,29 @@ Material de Next Leap para el Diplomado Intensivo en Acción de Tutela (Departam
 ## Qué hay
 
 - `index.html` y `taller-prompts.html`: taller de prompts RCI con 31 ejemplos, laboratorio y ejercicio. Se generan con `python3 src/build.py`. Es estático y funciona sin conexión.
-- `generador/`: generador de prompts extensos con IA (front estático). Pide un código de clase, el usuario arma su perfil y la IA produce prompts de tutela a su medida.
+- `generador/`: generador de prompts extensos de tutela (front estático). El usuario arma su perfil, elige tareas y recibe prompts a su medida.
+- `tools/pregenerar.py`: genera con IA la biblioteca que usa el generador estático.
 - `api/`: funciones de Vercel que usa el generador: `acceso`, `generar`, `expandir`, `probar`. `cuenta` responde 501 a propósito: los prompts se guardan en el navegador.
 
-## Desplegar el generador
+## Publicación en GitHub Pages (modo estático)
 
-El front puede vivir en GitHub Pages, pero la clave de la IA no puede estar en una página estática. Por eso las funciones de `api/` van en Vercel.
+El generador publicado en GitHub Pages **no usa servidor ni clave**. `generador/js/generados.js` trae 70 prompts extensos pregenerados con IA por área, subárea, rol y tarea, y `generador/js/estatico.js` los entrega con la misma interfaz de la API. El código de clase (`TUTELA2026`, en `generador/config.js`) se comprueba en el navegador: es una barrera de cortesía, no de seguridad.
 
-1. Importar este repo en Vercel. Variables de entorno:
-   - `ANTHROPIC_API_KEY`: clave de la API de Anthropic.
-   - `CLASE_CODIGOS`: códigos de clase válidos separados por coma, por ejemplo `TUTELA2026`.
-   - `ALLOWED_ORIGINS`: orígenes permitidos separados por coma. Por defecto `https://next-leap-s-a-s.github.io`.
-   - `ANTHROPIC_MODEL` (opcional): por defecto `claude-sonnet-5-5`.
-Cada llamada a `/api/generar` tarda cerca de 40 segundos. `vercel.json` pide hasta 120 s por función; si el plan de Vercel no lo permite, las generaciones largas fallarán por tiempo.
-2. En `generador/config.js` poner `window.API_BASE = "https://<proyecto>.vercel.app";` si el front se sirve desde GitHub Pages. Si todo se sirve desde Vercel se deja vacío.
+Qué hace y qué no hace en este modo:
+- Sí: perfil, selección de tareas, lotes de prompts, edición, copiar, guardar en el navegador y laboratorio con medidor.
+- No: «Extender con IA», «Mejorar con IA», «Probar con IA» y el pedido libre con IA real. El pedido libre elige los prompts más cercanos por palabras clave.
+
+Para regenerar o ampliar la biblioteca:
+
+```
+ANTHROPIC_API_KEY=... python3 tools/pregenerar.py
+```
+
+La clave solo se lee del entorno y no se guarda.
+
+## Modo con servidor (opcional)
+
+Las funciones de `api/` hacen lo mismo con IA en vivo y se despliegan en Vercel. Variables de entorno: `ANTHROPIC_API_KEY`, `CLASE_CODIGOS` (por ejemplo `TUTELA2026`), `ALLOWED_ORIGINS` y, opcionalmente, `ANTHROPIC_MODEL`. Cada llamada a `/api/generar` tarda cerca de 40 segundos; `vercel.json` pide hasta 120 s por función. Para usarlo, en `generador/config.js` se pone `MODO_ESTATICO = false` y `API_BASE = "https://<proyecto>.vercel.app"`.
 
 ## Contrato de la API
 
