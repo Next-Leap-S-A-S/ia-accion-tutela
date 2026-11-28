@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RAG para la tutela · Diplomado Intensivo en Acción de Tutela</title>
+<link rel="stylesheet" href="deck.css">
+<style>
+.code.s{font-size:16px;line-height:1.6;margin-top:0;padding:22px 24px}
+.code mark{background:#ffe9a8;color:inherit;padding:1px 3px;border-radius:3px}
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:30px;max-width:1340px;align-items:stretch}
+.split{display:grid;grid-template-columns:760px 1fr;gap:30px;margin-top:30px;max-width:1340px;align-items:start}
+.split .code{margin-top:0}
+.stack{display:flex;flex-direction:column;gap:12px}
+.stack .card{padding:18px 24px}
+.stack .tag{margin-bottom:6px}
+.card.ok{border-color:#9cc4a9;background:var(--suave)}
+.flow .card{padding:24px 22px}
+.flow .card h3{font-size:22px}
+.flow .card p{font-size:17.5px}
+.table.t{margin-top:28px}
+.table.t td{padding-top:12px;padding-bottom:12px}
+.rank{display:flex;align-items:center;gap:22px;margin-top:20px;font:400 27px/1.2 var(--mono);color:var(--ink)}
+.rank i{font-style:normal;color:var(--marca)}
+.rank .tag{font-family:'Inter',system-ui,sans-serif;margin:0;width:250px}
+.map{display:grid;grid-template-columns:640px 1fr;gap:30px;margin-top:30px;max-width:1340px;align-items:stretch}
+.map svg{width:100%;height:100%;border:1px solid var(--line);border-radius:14px;background:rgba(20,20,20,.025)}
+.map svg text{font-family:'Inter',system-ui,sans-serif;font-size:17px;fill:#3d3d42}
+.frags{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:28px;max-width:1340px}
+.frags .card{padding:20px 24px}
+.frags .card p{font-size:18.5px}
+.frags .tag{margin-bottom:8px}
+.stat b{font-size:104px}
+.pasos{display:flex;gap:50px;margin-top:30px;font-size:21px;font-weight:300;color:var(--i75);max-width:1340px}
+.pasos b{font-weight:600;color:var(--marca);margin-right:8px}
+</style>
+</head>
+<body>
+<div id="progress"></div>
+<div id="counter"></div>
+<main id="stage">
+
+<!-- 01 portada -->
+<section class="slide cover">
+  <div class="pin l"><img src="../src/assets/externado.svg" alt="Universidad Externado de Colombia"></div>
+  <div class="pin r">Next Leap</div>
+  <div class="label">Departamento de Derecho Constitucional</div>
+  <h1>Responder con fuentes,<br>no de memoria.</h1>
+  <p class="body">RAG aplicado a la acción de tutela: cómo lograr que la IA conteste a partir de tus documentos y cómo comprobar que lo hizo.</p>
+  <div class="meta">
+    <div><div class="tag">Programa</div><div>Diplomado Intensivo en Acción de Tutela</div></div>
+    <div><div class="tag">Sesión</div><div>1 de 3</div></div>
+  </div>
+</section>
+
+<!-- 02 receta -->
+<section class="slide">
+  <div class="label">La receta de hoy</div>
+  <h2>Primero la fuente. Después la redacción.</h2>
+  <div class="cols c4">
+    <div class="card"><div class="tag">01 Concepto</div><h3>Qué es RAG</h3><p>Qué hace un modelo solo y qué cambia cuando busca antes de responder.</p></div>
+    <div class="card"><div class="tag">02 Ingredientes</div><h3>Tu corpus de tutela</h3><p>Documentos, limpieza, fragmentos, fichas y formatos.</p></div>
+    <div class="card"><div class="tag">03 Pasos</div><h3>Buscar y responder</h3><p>El índice, la búsqueda y la instrucción que obliga a citar.</p></div>
+    <div class="card"><div class="tag">04 Antes de servir</div><h3>Revisar</h3><p>Dónde falla, un ejercicio en sala y las reglas que ya existen.</p></div>
+  </div>
+  <p class="key">Al salir vas a saber qué pedirle a una herramienta y de qué desconfiar.</p>
+</section>
+
+<!-- 03 modelo tradicional -->
+<section class="slide">
+  <div class="label">/01 Concepto</div>
+  <h2>Un modelo solo responde con lo que aprendió.</h2>
+  <div class="flow">
+    <div class="card"><div class="tag">Entrada</div><h3>Tu pregunta</h3><p>«¿Cuándo respondió la EPS la solicitud del medicamento?»</p></div>
+    <div class="arrow">→</div>
+    <div class="card"><div class="tag">Modelo de lenguaje</div><h3>Lo aprendido en el entrenamiento</h3><p>Sin buscador ni archivos adjuntos, no consulta nada más.</p></div>
+    <div class="arrow">→</div>
+    <div class="card"><div class="tag">Salida</div><h3>Un texto probable</h3><p>Bien redactado, aunque nunca haya visto el expediente.</p></div>
+  </div>
+  <div class="cols c2" style="margin-top:14px">
+    <div class="card"><div class="tag">Puede traer</div><p>Lenguaje jurídico general y textos públicos anteriores a su fecha de corte. Pueden estar incompletos o desactualizados.</p></div>
+    <div class="card"><div class="tag">No trae</div><p>Tu expediente, las pruebas que llegaron ayer ni la providencia publicada después del corte.</p></div>
+  </div>
+  <p class="src">OpenAI declaró en el informe técnico de GPT-4 que no publica detalles sobre la construcción de sus datos. Desconfía de cualquier gráfica con porcentajes.</p>
+</section>
+
+<!-- 04 qué es RAG -->
+<section class="slide">
+  <div class="label">/01 Concepto</div>
+  <h2>RAG busca primero y redacta después.</h2>
+  <p class="pull">Generación aumentada por recuperación (en inglés, <em>Retrieval-Augmented Generation</em>): un buscador trae fragmentos de una colección de documentos y un modelo de lenguaje responde con ellos a la vista.</p>
+  <div class="cols c2">
+    <div class="card ok"><div class="tag">Pieza 1 · Recuperador</div><h3>Busca y escoge</h3><p>Recibe la pregunta, recorre el índice de tus documentos y entrega los fragmentos que le parecen más pertinentes.</p></div>
+    <div class="card ok"><div class="tag">Pieza 2 · Generador</div><h3>Lee y redacta</h3><p>Es el modelo de lenguaje. Recibe la pregunta junto con los fragmentos y escribe la respuesta.</p></div>
+  </div>
+  <p class="key">Con RAG el modelo no memoriza tu expediente: lo consulta en cada pregunta. Qué hace el proveedor con tus archivos es otro asunto.</p>
+</section>
+
+<!-- 05 caso: dos respuestas -->
+<section class="slide">
+  <div class="label">/01 Concepto · Caso hipotético</div>
+  <h2>La misma pregunta, dos respuestas.</h2>
+  <div class="case"><p>Tutela en salud contra una EPS. Pregunta: «¿Cuándo respondió la EPS la solicitud del medicamento?»</p></div>
+  <div class="duo">
+    <div class="card"><div class="tag">Modelo solo</div><h3>Rellena el vacío</h3><p>«La EPS respondió dentro de los días siguientes a la radicación, negando el suministro por trámites administrativos.»</p><p style="margin-top:22px;color:var(--ink);font-weight:400">Suena a expediente. No salió de ninguno.</p></div>
+    <div class="card ok"><div class="tag">Con RAG</div><h3>Señala dónde leyó</h3><p>«El oficio de la EPS tiene fecha [fecha A] <b>[F2, folio 14]</b>. El informe rendido al juzgado menciona [fecha B] <b>[F5, folio 31]</b>. Las fechas no coinciden.»</p><p style="margin-top:22px;color:var(--ink);font-weight:400">Cuál se tiene por probada: [DECISIÓN DEL JUEZ]</p></div>
+  </div>
+  <p class="key">El valor está en poder abrir el folio 14 y comprobarlo.</p>
+</section>
+
+<!-- 06 qué cambia -->
+<section class="slide">
+  <div class="label">/01 Concepto</div>
+  <h2>Qué cambia y qué sigue igual.</h2>
+  <table class="table">
+    <thead><tr><th style="width:320px">Pregunta</th><th style="width:420px">Modelo solo</th><th>Modelo con RAG</th></tr></thead>
+    <tbody>
+      <tr><td>¿De dónde sale la respuesta?</td><td>Del entrenamiento.</td><td>Del entrenamiento y de los fragmentos recuperados.</td></tr>
+      <tr><td>¿Conoce tu expediente?</td><td>No.</td><td>Solo los fragmentos que le llegan en esa consulta.</td></tr>
+      <tr><td>¿Se actualiza?</td><td>Cuando el proveedor publica otro modelo.</td><td>Cuando tú actualizas los documentos.</td></tr>
+      <tr><td>¿Puedes rastrear el dato?</td><td>Difícilmente.</td><td>Sí, si cada fragmento tiene ficha y la respuesta lo cita.</td></tr>
+      <tr><td>¿Cómo se equivoca?</td><td>Inventa.</td><td>Inventa menos. También busca mal o lee mal.</td></tr>
+      <tr><td>¿Quién responde por el escrito?</td><td>Quien lo firma.</td><td>Quien lo firma.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- 07 preguntas -->
+<section class="slide">
+  <div class="label">/02 Ingredientes · Antes del primer archivo</div>
+  <h2>Empieza por las preguntas que debe contestar.</h2>
+  <div class="cols c3">
+    <div class="card"><div class="tag">El problema</div><h3>Uno y concreto</h3><p>«Reviso muchas tutelas en salud y pierdo tiempo ubicando en qué folio está cada hecho.»</p></div>
+    <div class="card ok"><div class="tag">Sí debe contestar</div><ul><li>¿En qué folio está el documento que acompaña cada hecho?</li><li>¿Qué órdenes del fallo siguen sin prueba de cumplimiento?</li><li>¿Qué dice la sentencia cargada sobre subsidiariedad?</li></ul></div>
+    <div class="card"><div class="tag">No le corresponde</div><ul><li>¿Se debe conceder el amparo?</li><li>¿Qué testimonio es creíble?</li><li>¿Hay perjuicio irremediable en este caso?</li></ul><p style="margin-top:14px;color:var(--ink);font-weight:500">[DECISIÓN DEL JUEZ]</p></div>
+  </div>
+  <p class="key">Escribe diez preguntas reales con su respuesta correcta. Con ellas vas a examinar el sistema.</p>
+</section>
+
+<!-- 08 corpus -->
+<section class="slide">
+  <div class="label">/02 Ingredientes · El corpus</div>
+  <h2>Si no responde una pregunta, no entra.</h2>
+  <table class="table">
+    <thead><tr><th style="width:270px">Fuente</th><th style="width:520px">Entra así</th><th>Cuidado</th></tr></thead>
+    <tbody>
+      <tr><td>Constitución, Decreto 2591 de 1991, Decreto 306 de 1992</td><td>Desde una fuente oficial, con las notas de vigencia escritas en el texto.</td><td>Normas modificadas, compiladas o declaradas inexequibles.</td></tr>
+      <tr><td>Providencias</td><td>Texto completo descargado de la relatoría, que tú ya leíste.</td><td>Resúmenes de terceros y citas sin texto.</td></tr>
+      <tr><td>Expediente</td><td>Anonimizado, con folios. Solicitud, informes, pruebas, autos.</td><td>Datos de salud y de menores de edad.</td></tr>
+      <tr><td>Modelos del despacho o de la oficina</td><td>La versión aprobada y fechada.</td><td>Un modelo enseña forma. No es fuente de derecho.</td></tr>
+    </tbody>
+  </table>
+  <div class="pills">
+    <span class="pill on">Pertinente</span><span class="pill on">Confiable</span><span class="pill on">Con detalle útil</span><span class="pill on">Con texto legible</span>
+  </div>
+  <p class="src">Un corpus equivocado produce respuestas equivocadas aunque la técnica funcione.</p>
+</section>
+
+<!-- 09 limpieza -->
+<section class="slide">
+  <div class="label">/02 Ingredientes · Limpieza</div>
+  <h2>Limpia sin borrar la prueba.</h2>
+  <div class="cols c3">
+    <div class="card"><div class="tag">Quita</div><h3>Ruido</h3><ul><li>Encabezados y pies repetidos</li><li>Menús y avisos copiados de la web</li><li>Archivos duplicados</li><li>Errores de reconocimiento de texto</li></ul></div>
+    <div class="card ok"><div class="tag">Conserva</div><h3>Lo que permite citar</h3><ul><li>Folios, páginas y párrafos</li><li>Notas de vigencia y notas al pie</li><li>Fechas, firmas y quién habla</li><li>Salvamentos y aclaraciones de voto</li></ul></div>
+    <div class="card"><div class="tag">Unifica con criterio</div><h3>Nombres, no categorías</h3><ul><li>Una sola marca por actor: [EPS], [accionante]</li><li>Un solo formato de fecha</li><li>Petición, queja y recurso se quedan como están</li></ul></div>
+  </div>
+  <p class="key">En un manual de servicio al cliente da igual decir queja o petición. En una tutela, esa diferencia puede ser el caso entero.</p>
+</section>
+
+<!-- 10 norma muerta -->
+<section class="slide">
+  <div class="label">/02 Ingredientes · Un caso real de vigencia</div>
+  <h2>Así resucita una norma inexequible.</h2>
+  <div class="duo">
+    <div class="code s" style="margin-top:0">ARTICULO 11.-<mark>INEXEQUIBLE.</mark>
+
+Caducidad. La acción de tutela podrá ejercerse en todo tiempo salvo la dirigida contra sentencias o providencias judiciales que pongan fin a un proceso, la cual caducará a los dos meses de ejecutoriada la providencia correspondiente.</div>
+    <div class="code s" style="margin-top:0">ARTICULO 6-Causales de improcedencia de la tutela. [...]
+
+Se entiende por irremediable el perjuicio que sólo pueda ser reparado en su integridad mediante una indemnización. <mark>Texto subrayado declarado INEXEQUIBLE</mark> mediante Sentencia de la Corte Constitucional C-531 de 1993</div>
+  </div>
+  <div class="cols c2" style="margin-top:14px">
+    <div class="card"><div class="tag">Si el corte cae entre las dos líneas</div><p>El fragmento recuperado dice que hay caducidad de dos meses. La palabra que lo desmiente quedó en el fragmento anterior. La Corte retiró esa norma en la sentencia C-543 de 1992.</p></div>
+    <div class="card"><div class="tag">Si el texto pierde el formato</div><p>La nota habla de un «texto subrayado». Al pasar a texto plano el subrayado desaparece y nada indica cuál era la frase retirada.</p></div>
+  </div>
+  <p class="src">Texto plano del Decreto 2591 de 1991 tomado del Gestor Normativo de Función Pública (consulta 28 de noviembre de 2026). La página muestra el subrayado y la pérdida ocurre al convertirla. La Secretaría del Senado marca «Inciso 2o. INEXEQUIBLE» en lugar de la frase.</p>
+</section>
+
+<!-- 11 fragmentación -->
+<section class="slide">
+  <div class="label">/02 Ingredientes · Fragmentación</div>
+  <h2>Corta la providencia por sus partes.</h2>
+  <div class="flow">
+    <div class="card"><div class="tag">Parte 1</div><h3>Antecedentes</h3><p>Hechos, posiciones de las partes y fallos de instancia.</p></div>
+    <div class="card"><div class="tag">Parte 2</div><h3>Consideraciones</h3><p>Reglas, reiteraciones y razones de la sala.</p></div>
+    <div class="card"><div class="tag">Parte 3</div><h3>Caso concreto</h3><p>La regla aplicada a estos hechos.</p></div>
+    <div class="card"><div class="tag">Parte 4</div><h3>Resuelve</h3><p>Órdenes, destinatarios y plazos.</p></div>
+    <div class="card"><div class="tag">Parte 5</div><h3>Votos particulares</h3><p>Lo que un magistrado no compartió o quiso precisar.</p></div>
+  </div>
+  <div class="case"><p><b>El error más caro:</b> el sistema recupera de los antecedentes lo que sostuvo la accionada y te lo presenta como la regla de la Corte. La frase es auténtica. La atribución es falsa.</p></div>
+  <div class="pasos">
+    <span><b>1</b>No partas un párrafo.</span>
+    <span><b>2</b>Empieza con 300 a 500 palabras.</span>
+    <span><b>3</b>Solapa un poco los fragmentos.</span>
+  </div>
+</section>
+
+<!-- 12 ficha -->
+<section class="slide">
+  <div class="label">/02 Ingredientes · Metadatos</div>
+  <h2>Cada fragmento lleva su ficha.</h2>
+  <div class="split">
+    <div class="code s">{
+  "id": "F-023",
+  "documento": "sentencia",
+  "corporacion": "Corte Constitucional",
+  "clase": "[T | C | SU | A]",
+  "numero": "[verificado en la relatoría]",
+  "fecha": "[fecha de la providencia]",
+  "derecho": "salud",
+  "parte": "consideraciones",
+  "quien_habla": "[sala | accionante | accionada | instancia]",
+  "ubicacion": "[párrafo o folio]",
+  "vigencia": "[vigente | inexequible | modificada]",
+  "fuente_oficial": "[enlace]",
+  "consultado": "[fecha]",
+  "texto": "[párrafo completo, anonimizado]"
+}</div>
+    <div class="stack">
+      <div class="card"><div class="tag">Para filtrar</div><p>Solo la parte resolutiva. Solo normas vigentes. Solo el derecho que se discute.</p></div>
+      <div class="card"><div class="tag">Para no confundir</div><p>«Quién habla» separa la tesis de una parte de la decisión de la sala.</p></div>
+      <div class="card"><div class="tag">Para citar</div><p>Número, párrafo y enlace permiten volver al original en un minuto.</p></div>
+      <div class="card ok"><div class="tag">Regla</div><p>El dato de la ficha lo verifica una persona. Un campo mal llenado engaña mejor que uno vacío.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 13 formato -->
+<section class="slide">
+  <div class="label">/02 Ingredientes · Formato</div>
+  <h2>El formato también decide qué se recupera.</h2>
+  <div class="rank"><span class="tag">Documentos de texto</span>.md <i>›</i> .txt <i>›</i> .pdf <i>›</i> .docx</div>
+  <div class="rank"><span class="tag">Bases de datos</span>.json <i>›</i> .csv <i>›</i> .xlsm</div>
+  <div class="cols c4">
+    <div class="card ok"><div class="tag">.md y .txt</div><p>Texto limpio. El .md además marca títulos y partes, que sirven para fragmentar.</p></div>
+    <div class="card"><div class="tag">.pdf y .docx</div><p>Columnas, tablas y controles de cambios pueden desordenar la lectura. Un escaneado necesita reconocimiento de texto y revisión.</p></div>
+    <div class="card ok"><div class="tag">.json y .csv</div><p>El .json nombra cada campo y admite niveles, como la ficha anterior. El .csv es una tabla plana.</p></div>
+    <div class="card"><div class="tag">.xlsm</div><p>Trae macros, hojas y fórmulas. Exporta solo los datos que vas a consultar.</p></div>
+  </div>
+  <p class="key">Confirma qué acepta tu herramienta. Gemini Notebook, por ejemplo, no lista .json ni .xlsm entre sus tipos de fuente.</p>
+</section>
+
+<!-- 14 indexar y buscar -->
+<section class="slide">
+  <div class="label">/03 Pasos · Indexación y recuperación</div>
+  <h2>Busca por significado y por palabra exacta.</h2>
+  <div class="map">
+    <svg viewBox="0 0 640 420" role="img" aria-label="La pregunta queda cerca de los fragmentos con significado parecido">
+      <text x="28" y="36" style="font-weight:600;fill:#141414">Índice vectorial (esquema)</text>
+      <circle cx="235" cy="214" r="160" fill="#00522c" fill-opacity=".07" stroke="#00522c" stroke-dasharray="6 6"/>
+      <line x1="235" y1="214" x2="170" y2="138" stroke="#00522c" stroke-width="1.5"/>
+      <line x1="235" y1="214" x2="280" y2="292" stroke="#00522c" stroke-width="1.5"/>
+      <circle cx="235" cy="214" r="13" fill="#141414"/>
+      <text x="256" y="210" style="font-weight:600;fill:#141414">«No me entregan</text>
+      <text x="256" y="232" style="font-weight:600;fill:#141414">la medicina»</text>
+      <circle cx="170" cy="138" r="9" fill="#00522c"/><text x="140" y="118">negativa de suministro</text>
+      <circle cx="280" cy="292" r="9" fill="#00522c"/><text x="160" y="322">autorización pendiente</text>
+      <circle cx="495" cy="112" r="9" fill="#9a9aa2"/><text x="420" y="92">libertad de expresión</text>
+      <circle cx="530" cy="300" r="9" fill="#9a9aa2"/><text x="472" y="330">reporte financiero</text>
+      <circle cx="440" cy="372" r="9" fill="#9a9aa2"/><text x="300" y="400">nombramiento en concurso</text>
+    </svg>
+    <div class="stack">
+      <div class="card ok"><div class="tag">Por significado</div><p>Cada fragmento se convierte en una lista de números, el <em>embedding</em>. La pregunta también. Se traen los más cercanos aunque usen otras palabras.</p></div>
+      <div class="card"><div class="tag">Por palabra exacta</div><p>Un radicado, «artículo 86» o el nombre de un medicamento deben coincidir letra por letra. Un método clásico es BM25.</p></div>
+      <div class="card"><div class="tag">Por la ficha</div><p>Filtra antes de buscar: parte = resuelve, vigencia = vigente.</p></div>
+    </div>
+  </div>
+  <p class="src">Combinar las tres es una búsqueda híbrida. Si lo construye tu área de tecnología, hablará de índices como FAISS, Chroma, Pinecone, Weaviate o Milvus.</p>
+</section>
+
+<!-- 15 prompt -->
+<section class="slide">
+  <div class="label">/03 Pasos · Integración con el modelo</div>
+  <h2>La instrucción une las dos piezas.</h2>
+  <div class="code" style="font-size:17.5px;line-height:1.58;margin-top:28px">ROL
+Eres un asistente de sustanciación en acciones de tutela. Escribes para un abogado que verificará cada dato.
+
+CONTEXTO
+Pregunta: [pregunta]
+Fragmentos recuperados, anonimizados, cada uno con su ficha: [F1] [F2] [F3]
+
+INSTRUCCIÓN
+1) Responde solo con lo que dicen los fragmentos.
+2) Después de cada afirmación cita [F#] y el folio o párrafo.
+3) Separa lo que alega cada parte, lo que consta en un documento y lo que decidió una autoridad.
+4) Si los fragmentos no alcanzan, escribe «no consta en las fuentes» y di qué documento falta.
+5) Si dos fragmentos se contradicen, muéstralo sin escoger.
+6) Marca con [verificar] cada norma, término y providencia.
+7) Deja la valoración de la prueba y el sentido del fallo como [DECISIÓN DEL JUEZ].</div>
+  <p class="src">En una herramienta sin programar, los fragmentos los pone el sistema. Tú escribes el rol, la pregunta y las reglas.</p>
+</section>
+
+<!-- 16 herramientas -->
+<section class="slide">
+  <div class="label">/03 Pasos · Sin programar</div>
+  <h2>Puedes probarlo con una herramienta de proyectos.</h2>
+  <table class="table">
+    <thead><tr><th style="width:300px">Herramienta</th><th style="width:600px">Con tus documentos</th><th>Límite que conviene saber</th></tr></thead>
+    <tbody>
+      <tr><td>Gemini Notebook (antes NotebookLM)</td><td>Conversas con las fuentes que cargas. Google anuncia citas dentro de la respuesta y advierte que puede equivocarse.</td><td>Hasta 50 fuentes por cuaderno en el plan gratuito. Más según el plan.</td></tr>
+      <tr><td>Proyectos de Claude</td><td>Usan los archivos como base de conocimiento. En planes pagos activan RAG cuando el volumen se acerca al límite de contexto.</td><td>Con pocos documentos los carga completos en contexto. El plan gratuito no incluye RAG y permite cinco proyectos.</td></tr>
+      <tr><td>Proyectos de ChatGPT</td><td>Los archivos quedan como material de referencia para los chats del proyecto.</td><td>5 archivos por proyecto en Free, 25 en Go y Plus, 40 en Pro, Business, Enterprise y Edu.</td></tr>
+    </tbody>
+  </table>
+  <div class="case"><p>Si trabajas en la Rama Judicial, la primera pregunta es qué herramienta tienes permitido usar. El Acuerdo PCSJA24-12243 pide evitar los chatbots generales o comerciales en versión gratuita (art. 8).</p></div>
+  <p class="src">Según la documentación de cada proveedor, consultada el 28 de noviembre de 2026. Funciones y límites cambian con el plan y con el tiempo.</p>
+</section>
+
+<!-- 17 no elimina -->
+<section class="slide">
+  <div class="label">/04 Antes de servir</div>
+  <h2>RAG reduce las alucinaciones. No las elimina.</h2>
+  <div class="stats s2" style="max-width:1340px;grid-template-columns:520px 1fr;align-items:center">
+    <div class="stat"><b>17–33 %</b><span>de las veces alucinaron herramientas comerciales de investigación jurídica con recuperación de fuentes.</span></div>
+    <div class="card"><div class="tag">Cómo leer la cifra</div><ul><li>Estudio de Stanford sobre Lexis+ AI, Westlaw AI-Assisted Research y Ask Practical Law AI.</li><li>Derecho de Estados Unidos, pruebas de 2024. No mide tu herramienta ni la tutela.</li><li>Cuenta como alucinación la respuesta incorrecta y la que cita una fuente que no la respalda.</li></ul></div>
+  </div>
+  <p class="key">Una cita al lado de la frase prueba que hubo búsqueda. No prueba que la fuente diga eso.</p>
+  <p class="src">Magesh, Surani, Dahl, Suzgun, Manning y Ho, «Hallucination-Free?», Journal of Empirical Legal Studies, 2025.</p>
+</section>
+
+<!-- 18 fallas -->
+<section class="slide">
+  <div class="label">/04 Antes de servir</div>
+  <h2>Cuatro fallas que debes provocar tú.</h2>
+  <div class="cols c4">
+    <div class="card"><div class="tag">Falla 1</div><h3>Trae el fragmento equivocado</h3><p>La respuesta correcta estaba en otro documento.</p><p style="margin-top:20px;color:var(--ink);font-weight:500">Prueba</p><p>Haz tus diez preguntas y revisa qué fragmentos llegaron antes de leer la respuesta.</p></div>
+    <div class="card"><div class="tag">Falla 2</div><h3>Atribuye mal</h3><p>Convierte un alegato o un voto particular en decisión.</p><p style="margin-top:20px;color:var(--ink);font-weight:500">Prueba</p><p>Pregunta por un punto en el que la accionada y la sala digan cosas opuestas.</p></div>
+    <div class="card"><div class="tag">Falla 3</div><h3>Cita lo que no sostiene</h3><p>La fuente existe y la frase no está en ella.</p><p style="margin-top:20px;color:var(--ink);font-weight:500">Prueba</p><p>Abre cada cita. Busca la frase en el original.</p></div>
+    <div class="card"><div class="tag">Falla 4</div><h3>Contesta sin tener fuente</h3><p>Completa con lo que aprendió en el entrenamiento.</p><p style="margin-top:20px;color:var(--ink);font-weight:500">Prueba</p><p>Pregunta algo que no esté en el corpus. La respuesta correcta es «no consta».</p></div>
+  </div>
+  <p class="key">Repite las pruebas cada vez que cambies documentos, herramienta o modelo.</p>
+</section>
+
+<!-- 19 ejercicio -->
+<section class="slide">
+  <div class="label">En sala · Parejas · 10 minutos · Caso hipotético</div>
+  <h2>Tú eres el recuperador. Decide qué entra.</h2>
+  <p class="body" style="max-width:1340px;margin-top:18px">Pregunta: «¿Procede la tutela de [accionante] contra [EPS] aunque exista otro medio de defensa?»</p>
+  <div class="frags" style="margin-top:20px">
+    <div class="card"><div class="tag">F1 · Decreto 2591, art. 6 · texto plano</div><p>«1. Cuando existan otros recursos o medios de defensa judiciales, salvo que aquélla se utilice como mecanismo transitorio para evitar un perjuicio irremediable. [...] Se entiende por irremediable el perjuicio que sólo pueda ser reparado en su integridad mediante una indemnización.»</p></div>
+    <div class="card"><div class="tag">F2 · Decreto 2591, art. 8</div><p>«Aun cuando el afectado disponga de otro medio de defensa judicial, la acción de tutela procederá cuando se utilice como mecanismo transitorio para evitar un perjuicio irremediable.»</p></div>
+    <div class="card"><div class="tag">F3 · Sentencia ficticia · ficha sin «parte»</div><p>«La tutela es improcedente porque la paciente cuenta con otro mecanismo y no acudió a él.»</p></div>
+    <div class="card"><div class="tag">F4 · Modelo interno · sin fecha ni autor</div><p>«En los casos contra EPS por trámites administrativos se declara la improcedencia.»</p></div>
+  </div>
+  <div class="pasos">
+    <span><b>1</b>Entra, sale o entra con advertencia.</span>
+    <span><b>2</b>Qué dato de la ficha habría evitado el riesgo.</span>
+    <span><b>3</b>Qué falta para responder de verdad.</span>
+  </div>
+</section>
+
+<!-- 20 reglas -->
+<section class="slide">
+  <div class="label">/04 Antes de servir · Reserva y reglas</div>
+  <h2>En la Rama Judicial ya hay reglas escritas.</h2>
+  <div class="cols c3">
+    <div class="card"><div class="tag">Sentencia T-323 de 2024</div><h3>La IA no sustituye al juez</h3><p>La Corte revisó un fallo de tutela en el que se usó ChatGPT. Fijó criterios, entre ellos transparencia, responsabilidad, privacidad, verificación y control humano.</p></div>
+    <div class="card"><div class="tag">Acuerdo PCSJA24-12243, art. 8</div><h3>Límites de uso</h3><ul><li>Sin IA para valorar pruebas, escrutar hechos, hacer juicios de valor o resolver problemas jurídicos.</li><li>Sin datos personales, sensibles o confidenciales en herramientas que se los apropien, permitan compartirlos o reentrenen con ellos.</li></ul></div>
+    <div class="card"><div class="tag">Mismo acuerdo, arts. 4, 5, 9 y 10</div><h3>Verificar y declarar</h3><ul><li>Consultar jurisprudencia con IA exige revisión detallada.</li><li>Usos no previstos, solo con herramientas avaladas por el Consejo Superior.</li><li>El uso de IA generativa se informa expresamente.</li></ul></div>
+  </div>
+  <p class="key">Litigues o decidas, anonimiza antes de cargar. Los datos de salud son sensibles (Ley 1581 de 2012, art. 5). Quitar el nombre no basta si los hechos delatan a la persona.</p>
+</section>
+
+<!-- 21 cierre -->
+<section class="slide dim sec">
+  <div class="num">F</div>
+  <div class="tag">La idea que te llevas</div>
+  <h2 style="max-width:1200px;font-size:88px;line-height:1.05">RAG te acerca la fuente. Leerla sigue siendo tu trabajo.</h2>
+  <p style="max-width:900px">Para esta semana: diez preguntas, cinco documentos anonimizados y una revisión de los fragmentos que llegan.</p>
+</section>
+
+<!-- 22 fuentes -->
+<section class="slide">
+  <div class="label">Fuentes</div>
+  <h2 style="font-size:44px">Consultadas el 28 de noviembre de 2026.</h2>
+  <div class="credits">
+    <p>Decreto 2591 de 1991. Gestor Normativo de Función Pública. <a href="https://www.funcionpublica.gov.co/eva/gestornormativo/norma.php?i=5304">funcionpublica.gov.co/eva/gestornormativo/norma.php?i=5304</a></p>
+    <p>Decreto 2591 de 1991. Secretaría del Senado. <a href="http://www.secretariasenado.gov.co/senado/basedoc/decreto_2591_1991.html">secretariasenado.gov.co · decreto_2591_1991</a></p>
+    <p>Corte Constitucional, sentencia C-543 de 1992. <a href="https://www.corteconstitucional.gov.co/relatoria/1992/c-543-92.htm">corteconstitucional.gov.co/relatoria/1992/c-543-92.htm</a></p>
+    <p>Corte Constitucional, sentencia C-531 de 1993. <a href="https://www.corteconstitucional.gov.co/relatoria/1993/C-531-93.htm">corteconstitucional.gov.co/relatoria/1993/C-531-93.htm</a></p>
+    <p>Corte Constitucional, sentencia T-323 de 2024. <a href="https://www.corteconstitucional.gov.co/relatoria/2024/T-323-24.htm">corteconstitucional.gov.co/relatoria/2024/T-323-24.htm</a></p>
+    <p>Consejo Superior de la Judicatura, Acuerdo PCSJA24-12243 del 16 de diciembre de 2024. Copia publicada por la Universidad Externado. <a href="https://geneticayderecho.uexternado.edu.co/wp-content/uploads/sites/57/2026/03/1.-Acuerdo-PCSJA24-12243.pdf">geneticayderecho.uexternado.edu.co · Acuerdo PCSJA24-12243</a></p>
+    <p>Ley 1581 de 2012. <a href="http://www.secretariasenado.gov.co/senado/basedoc/ley_1581_2012.html">secretariasenado.gov.co · ley_1581_2012</a></p>
+    <p>Lewis y otros, «Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks», 2020. <a href="https://arxiv.org/abs/2005.11401">arxiv.org/abs/2005.11401</a></p>
+    <p>Magesh y otros, «Hallucination-Free?», J. Empirical Legal Studies, 2025. <a href="https://isps.yale.edu/research/publications/isps25-33">isps.yale.edu · isps25-33</a> · versión previa <a href="https://arxiv.org/abs/2405.20362">arxiv.org/abs/2405.20362</a></p>
+    <p>OpenAI, «GPT-4 Technical Report», 2023. <a href="https://arxiv.org/abs/2303.08774">arxiv.org/abs/2303.08774</a></p>
+    <p>Google, cambio de nombre de NotebookLM, 16 de julio de 2026. <a href="https://blog.google/innovation-and-ai/products/gemini-notebook/notebooklm-gemini-notebook/">blog.google · Gemini Notebook</a></p>
+    <p>Gemini Notebook, ayuda: tipos de fuente y límites. <a href="https://support.google.com/gemininotebook/answer/16215270">support.google.com/gemininotebook/answer/16215270</a> · citas <a href="https://support.google.com/notebooklm/answer/16164461">answer/16164461</a></p>
+    <p>Claude, ayuda: proyectos y RAG. <a href="https://support.claude.com/en/articles/9517075-what-are-projects">support.claude.com · 9517075</a> · <a href="https://support.claude.com/en/articles/11473015-retrieval-augmented-generation-rag-for-projects">11473015</a></p>
+    <p>ChatGPT, ayuda: proyectos. <a href="https://help.openai.com/en/articles/10169521-projects-in-chatgpt">help.openai.com · 10169521</a></p>
+  </div>
+  <p class="src">La salida de la IA es un borrador. Verifica cada norma y cada providencia en la fuente oficial antes de usarla.</p>
+</section>
+
+</main>
+<script src="deck.js"></script>
+</body>
+</html>
